@@ -1,46 +1,57 @@
 package com.techgv.disasterhelper.ui.home
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.techgv.disasterhelper.R
 import com.techgv.disasterhelper.data.entity.Message
 import com.techgv.disasterhelper.navigation.TopLevelDestination
-import com.techgv.disasterhelper.ui.components.ErrorItem
-import com.techgv.disasterhelper.ui.components.LoadingIndicator
-import com.techgv.disasterhelper.ui.components.VerticalSpacer
-import com.techgv.disasterhelper.R
+import kotlinx.coroutines.launch
 
 /**
  * This composable function is used to be called from [AppNavigation].
  */
 @Composable
 fun HomeRoute(
-    onNavigateClick: (source: String) -> Unit,
+    navController: NavController,
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
     val homeScreenUiState by remember { homeViewModel.response }.collectAsStateWithLifecycle()
 
     HomeScreen(
         uiState = homeScreenUiState,
-        loadData = { homeViewModel.loadData() },
-        onNavigateClick = onNavigateClick
+        navController = navController
     )
 }
 
@@ -52,80 +63,77 @@ fun HomeRoute(
 @Composable
 fun HomeScreen(
     uiState: HomeScreenUiState,
-    loadData: () -> Unit,
-    onNavigateClick: (source: String) -> Unit
+    navController: NavController,
 ) {
-    LaunchedEffect(Unit) {
-        loadData()
-    }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(id = R.string.app_name)) }
-            )
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            when (uiState) {
-                is HomeScreenUiState.Initial -> {}
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
-                is HomeScreenUiState.Loading -> {
-                    LoadingIndicator(modifier = Modifier.fillMaxSize())
-                }
-
-                is HomeScreenUiState.Success -> {
-                    HomeScreenContent(
-                        modifier = Modifier.fillMaxSize(),
-                        welcomeMessage = uiState.msg.text,
-                        onNavigateClick = onNavigateClick
-                    )
-                }
-
-                is HomeScreenUiState.Error -> {
-                    ErrorItem(
-                        text = uiState.msg,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                Text("Disaster Helper", modifier = Modifier.padding(16.dp))
+                HorizontalDivider()
+                Spacer(Modifier.size(10.dp))
+                NavigationDrawerItem(
+                    label = { Text(text = "Home") },
+                    selected = true,
+                    onClick = {  }
+                )
+                Spacer(Modifier.size(10.dp))
+                NavigationDrawerItem(
+                    label = { Text(text = "Community") },
+                    selected = true,
+                    onClick = { navController.navigate(TopLevelDestination.CommunityScreen.route) }
+                )
+                Spacer(Modifier.size(10.dp))
+                NavigationDrawerItem(
+                    label = { Text(text = "Help Line") },
+                    selected = true,
+                    onClick = { navController.navigate(TopLevelDestination.HelpLineScreen.route) }
+                )
             }
-        }
+        },
+        gesturesEnabled = true,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Disaster Helper") },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            scope.launch {
+                                drawerState.open()
+                            }
+                        }) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu")
+                        }
+                    }
+                )
+            },
+            modifier = Modifier.fillMaxSize(),
+            content = { paddingValues: PaddingValues ->
+                HomeScreenContent(
+                    modifier = Modifier.padding(paddingValues)
+                )
+            }
+        )
     }
+
 }
 
 @Composable
 private fun HomeScreenContent(
-    modifier: Modifier = Modifier,
-    welcomeMessage: String,
-    onNavigateClick: (source: String) -> Unit
+    modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box(
+        modifier = modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        Text(text = welcomeMessage)
-        VerticalSpacer(size = 16)
-        Button(
-            onClick = {
-                onNavigateClick(
-                    context.getString(R.string.screen_name).format(TopLevelDestination.Home.title)
-                )
-            }
-        ) {
-            Text(
-                text = stringResource(
-                    R.string.go_to_screen,
-                    TopLevelDestination.Detail.title
-                )
-            )
-        }
+        Text(text = "Welcome to Disaster Helper", fontSize = 24.sp)
     }
 }
 
@@ -134,7 +142,6 @@ private fun HomeScreenContent(
 fun HomeScreenPreview() {
     HomeScreen(
         uiState = HomeScreenUiState.Success(msg = Message(text = stringResource(id = R.string.welcome_message))),
-        loadData = {},
-        onNavigateClick = {}
+        navController = rememberNavController()
     )
 }

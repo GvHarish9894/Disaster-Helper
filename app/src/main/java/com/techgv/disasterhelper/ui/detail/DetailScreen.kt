@@ -97,7 +97,7 @@ private fun DetailScreenContent(
 @Composable
 fun DetailScreenPreview() {
     DetailScreen(
-        source = stringResource(R.string.screen_name).format(TopLevelDestination.Home.title),
+        source = stringResource(R.string.screen_name).format(TopLevelDestination.HomeScreen.title),
         onBackClick = {}
     )
 }

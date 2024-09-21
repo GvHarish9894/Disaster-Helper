@@ -7,7 +7,9 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.techgv.disasterhelper.ui.community.CommunityRoute
 import com.techgv.disasterhelper.ui.detail.DetailRoute
+import com.techgv.disasterhelper.ui.helpscreen.HelpScreenRoute
 import com.techgv.disasterhelper.ui.home.HomeRoute
 import com.techgv.disasterhelper.utility.Constants
 
@@ -19,15 +21,24 @@ fun AppNavigation(
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = TopLevelDestination.Home.route
+        startDestination = TopLevelDestination.HomeScreen.route
     ) {
-        composable(route = TopLevelDestination.Home.route) {
-            HomeRoute(
-                onNavigateClick = { source ->
-                    navController.navigate(TopLevelDestination.Detail.withArgs(source))
-                }
-            )
+        composable(route = TopLevelDestination.HomeScreen.route) {
+            HomeRoute(navController)
         }
+
+        composable(route = TopLevelDestination.CommunityScreen.route) {
+            CommunityRoute(onBackClick = {
+                navController.popBackStack()
+            })
+        }
+
+        composable(route = TopLevelDestination.HelpLineScreen.route) {
+            HelpScreenRoute(onBackClick = {
+                navController.popBackStack()
+            })
+        }
+
 
         composable(route = TopLevelDestination.Detail.route + "/{${Constants.SOURCE}}",
             arguments = listOf(
