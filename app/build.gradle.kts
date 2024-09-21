@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.hadiyarajesh.composetemplate"
+    namespace = "com.techgv.disasterhelper"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.hadiyarajesh.composetemplate"
+        applicationId = "com.techgv.disasterhelper"
         minSdk = 21
         targetSdk = 34
         versionCode = 1
